@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Very Important Question 💌</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #fff0f5;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+    /* hide cursor over the No zone so there's zero hint it's clickable */
+  }
+
+  /* ---- MUSIC BAR ---- */
+  #music-bar {
+    position: fixed; top: 12px; right: 16px;
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.88);
+    border: 1.5px solid #f9a8d4;
+    border-radius: 40px; padding: 6px 14px;
+    z-index: 999;
+    box-shadow: 0 2px 12px rgba(244,114,182,0.18);
+    backdrop-filter: blur(8px);
+  }
+  #music-bar span { font-size: 13px; color: #be185d; font-weight: 700; }
+  #music-bar button {
+    background: #f472b6; border: none; border-radius: 50%;
+    width: 30px; height: 30px; cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s;
+  }
+  #music-bar button:hover { transform: scale(1.15); }
+  .note-anim {
+    font-size: 18px;
+    animation: floatNote 2s ease-in-out infinite;
+    display: inline-block;
+  }
+  @keyframes floatNote {
+    0%,100% { transform: translateY(0) rotate(-10deg); }
+    50%      { transform: translateY(-6px) rotate(10deg); }
+  }
+
+  /* ---- HEARTS BG ---- */
+  .hearts-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .floating-heart {
+    position: absolute; opacity: 0.18;
+    animation: floatUp linear infinite; bottom: -40px;
+  }
+  @keyframes floatUp {
+    0%  { transform: translateY(0) rotate(0deg); opacity: 0.18; }
+    80% { opacity: 0.18; }
+    100%{ transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* ---- SCREENS ---- */
+  .screen {
+    display: none; min-height: 100vh;
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 20px; position: relative; z-index: 1; text-align: center;
+  }
+  .screen.active { display: flex; }
+
+  /* ---- SCREEN 1 ---- */
+  #screen1 .emoji-big {
+    font-size: 90px; animation: pulse 1.5s ease-in-out infinite;
+    display: block; margin-bottom: 10px;
+  }
+  @keyframes pulse { 0%,100%{ transform: scale(1); } 50%{ transform: scale(1.12); } }
+  #screen1 h1 {
+    font-family: 'Pacifico', cursive;
+    font-size: clamp(28px,7vw,56px); color: #be185d;
+    margin-bottom: 12px; line-height: 1.2;
+  }
+  #screen1 p { font-size: 18px; color: #9d174d; margin-bottom: 36px; max-width: 480px; }
+  #screen1 button {
+    background: linear-gradient(135deg,#f472b6,#ec4899);
+    color: white; border: none; padding: 18px 48px; border-radius: 50px;
+    font-size: 20px; font-weight: 900; font-family: 'Nunito',sans-serif;
+    cursor: pointer; box-shadow: 0 8px 24px rgba(236,72,153,0.38);
+    transition: transform 0.2s, box-shadow 0.2s; letter-spacing: 0.5px;
+  }
+  #screen1 button:hover { transform: scale(1.06); box-shadow: 0 12px 32px rgba(236,72,153,0.5); }
+
+  /* ---- SCREEN 2 ---- */
+  #screen2 h2 {
+    font-family: 'Pacifico', cursive;
+    font-size: clamp(26px,6vw,50px); color: #be185d; margin-bottom: 8px;
+  }
+  #screen2 .sub { font-size: 17px; color: #9d174d; margin-bottom: 40px; max-width: 420px; }
+
+  .btn-row { display: flex; gap: 24px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 8px; position: relative; min-height: 80px; }
+
+  #yes-btn {
+    background: linear-gradient(135deg,#34d399,#10b981);
+    color: white; border: none; padding: 18px 52px; border-radius: 50px;
+    font-size: 22px; font-weight: 900; font-family: 'Nunito',sans-serif;
+    cursor: pointer; box-shadow: 0 8px 24px rgba(16,185,129,0.4);
+    transition: transform 0.2s, box-shadow 0.2s; letter-spacing: 0.5px;
+    position: relative; z-index: 2;
+  }
+  #yes-btn:hover { transform: scale(1.08); box-shadow: 0 12px 32px rgba(16,185,129,0.55); }
+
+  /* ---- NO BUTTON: fixed position, pointer-events NONE always ---- */
+  #no-btn {
+    background: white; color: #f43f5e; border: 2px solid #fda4af;
+    padding: 14px 36px; border-radius: 50px;
+    font-size: 17px; font-weight: 700; font-family: 'Nunito',sans-serif;
+    /* CRITICAL: never clickable, cursor never pointer */
+    pointer-events: none !important;
+    cursor: default !important;
+    user-select: none;
+    position: fixed;        /* fixed so it can escape anywhere on screen */
+    opacity: 0;             /* hidden until placed beside Yes */
+    left: -999px; top: -999px;
+    transition: left 0.22s cubic-bezier(.22,.68,0,1.2), top 0.22s cubic-bezier(.22,.68,0,1.2), font-size 0.3s;
+    z-index: 10;
+  }
+
+  .meme-msg {
+    margin-top: 16px; font-size: 15px; color: #e11d48; font-weight: 700;
+    min-height: 24px;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+  /* ---- SCREEN 3 ---- */
+  #screen3 { background: radial-gradient(ellipse at 50% 40%,#fdf2f8,#fff0f5 70%); }
+  #screen3 .big-yes {
+    font-family: 'Pacifico', cursive;
+    font-size: clamp(56px,14vw,110px);
+    background: linear-gradient(135deg,#ec4899,#f97316,#ec4899);
+    background-size: 200%;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 2s linear infinite; line-height: 1.1;
+  }
+  @keyframes shimmer { 0%{ background-position:0% 50%; } 100%{ background-position:200% 50%; } }
+  #screen3 .msg { font-size: 22px; color:#9d174d; font-weight:700; margin:16px 0 8px; max-width:480px; }
+  #screen3 .sub2 { font-size:16px; color:#be185d; opacity:0.8; max-width:400px; margin-bottom:32px; }
+  #screen3 .hearts-row {
+    font-size:40px; letter-spacing:8px;
+    animation: bounce 0.8s ease-in-out infinite alternate;
+    display:block; margin-bottom:24px;
+  }
+  @keyframes bounce { from{ transform:translateY(0); } to{ transform:translateY(-10px); } }
+  .restart-btn {
+    background:transparent; border:1.5px solid #f9a8d4; color:#be185d;
+    padding:10px 28px; border-radius:40px; font-size:14px; cursor:pointer;
+    font-family:'Nunito',sans-serif; font-weight:700; margin-top:8px;
+    transition:background 0.2s;
+  }
+  .restart-btn:hover { background:#fce7f3; }
+
+  /* ---- CONFETTI ---- */
+  .confetti-piece {
+    position: fixed; width:10px; height:10px; top:-20px;
+    border-radius:2px; z-index:500; pointer-events:none;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0%  { transform:translateY(0) rotate(0deg); opacity:1; }
+    85% { opacity:1; }
+    100%{ transform:translateY(110vh) rotate(720deg); opacity:0; }
+  }
+
+  /* ---- SONG CREDIT ---- */
+  .song-credit {
+    position:fixed; bottom:14px; left:50%; transform:translateX(-50%);
+    background:rgba(255,255,255,0.82); border:1px solid #fda4af;
+    border-radius:30px; padding:5px 18px;
+    font-size:12px; color:#9d174d; font-weight:700;
+    z-index:999; white-space:nowrap; backdrop-filter:blur(6px);
+  }
+
+  /* ---- YOUTUBE HIDDEN PLAYER ---- */
+  #yt-player { position:fixed; width:1px; height:1px; top:-9999px; left:-9999px; }
+</style>
+</head>
+<body>
+
+<div class="hearts-bg" id="heartsBg"></div>
+
+<!-- Music bar -->
+<div id="music-bar">
+  <span class="note-anim">♪</span>
+  <span id="song-name">Her Favorite Song</span>
+  <button id="toggle-music" title="Play/Pause">▶</button>
+</div>
+
+<!-- YouTube hidden player (loaded after user gesture) -->
+<div id="yt-player"></div>
+
+<!-- ============ SCREEN 1 ============ -->
+<section class="screen active" id="screen1">
+  <span class="emoji-big">💌</span>
+  <h1>Hey, you… yes, YOU.</h1>
+  <p>Okay, I've been rehearsing this in the mirror for 3 weeks.<br>
+     My cat judged me. My plants wilted from the cringe.<br>
+     But here we are. I'm pressing the button. 🚀</p>
+  <button onclick="startMusic(); goTo(2)">Okay fine, what is it? 👀</button>
+</section>
+
+<!-- ============ SCREEN 2 ============ -->
+<section class="screen" id="screen2">
+  <div style="font-size:72px;margin-bottom:8px;animation:pulse 1.5s ease-in-out infinite">🥺</div>
+  <h2>Will you be my girlfriend?</h2>
+  <p class="sub">
+    I promise I'm at least 60% less awkward in person.<br>
+    (The other 40% is part of my charm, allegedly.)
+  </p>
+
+  <div style="background:white;border-radius:20px;padding:24px 32px;margin-bottom:32px;box-shadow:0 4px 20px rgba(244,114,182,0.15);max-width:380px;">
+    <p style="font-size:15px;color:#9d174d;line-height:1.7;">
+      ✅ Will bring you snacks uninvited<br>
+      ✅ Excellent at awkward silences<br>
+      ✅ Will laugh at your jokes even when they're not funny<br>
+      ✅ 100% certified soft boy™<br>
+      ✅ Your cat will probably like me more than you do
+    </p>
+  </div>
+
+  <div class="btn-row">
+    <button id="yes-btn" onclick="goToYes()">YES!! 🎉</button>
+    <!-- No button: rendered in JS as fixed-position, pointer-events:none -->
+    <button id="no-btn">No 🙅</button>
+  </div>
+  <p class="meme-msg" id="meme-msg"></p>
+</section>
+
+<!-- ============ SCREEN 3 ============ -->
+<section class="screen" id="screen3">
+  <div class="big-yes">SHE SAID YES!!</div>
+  <span class="hearts-row">💖 💕 💗 💓 💝</span>
+  <p class="msg">I knew it. My confidence was NEVER lacking. 😎</p>
+  <p class="sub2">
+    Okay fine, I was terrified. But you're here, and I'm here,<br>
+    and I think that's kind of perfect. 🌸
+  </p>
+  <button class="restart-btn" onclick="restart()">Replay this masterpiece ↩</button>
+</section>
+
+<div class="song-credit" id="song-credit">🎵 Playing: Her Favorite Song</div>
+
+<script>
+/* =====================================================================
+   CUSTOMIZE HERE — only touch this block
+   ===================================================================== 
+   OPTION A — YouTube (recommended, no hosting needed):
+     Set YOUTUBE_VIDEO_ID to the video ID from the YouTube URL.
+     Example: https://www.youtube.com/watch?v=dQw4w9WgXcQ → "dQw4w9WgXcQ"
+   
+   OPTION B — Direct MP3 (if you have a hosted .mp3 link):
+     Leave YOUTUBE_VIDEO_ID as "" and set MP3_URL instead.
+
+   Also update SONG_LABEL with the real song name.
+   ===================================================================== */
+  const YOUTUBE_VIDEO_ID = "xrSZLa14haA";          // e.g. "dQw4w9WgXcQ"
+  const MP3_URL          = "";          // e.g. "https://example.com/song.mp3"
+  const SONG_LABEL       = "Teri Jhuki Nazar";
+/* ===================================================================== */
+
+  document.getElementById('song-name').textContent   = SONG_LABEL;
+  document.getElementById('song-credit').textContent = "🎵 Playing: " + SONG_LABEL;
+
+  // ---- floating hearts ----
+  const emojis = ['💕','💖','💗','💓','💝','🌸','✨','💌'];
+  const bg = document.getElementById('heartsBg');
+  for (let i = 0; i < 22; i++) {
+    const h = document.createElement('span');
+    h.className = 'floating-heart';
+    h.textContent = emojis[i % emojis.length];
+    h.style.cssText = `left:${Math.random()*100}vw;font-size:${16+Math.random()*18}px;animation-duration:${8+Math.random()*14}s;animation-delay:${Math.random()*10}s`;
+    bg.appendChild(h);
+  }
+
+  // ---- screen nav ----
+  function goTo(n) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen'+n).classList.add('active');
+    window.scrollTo(0,0);
+    if (n === 2) initNoButton();
+  }
+
+  // ---- NO BUTTON: starts beside Yes, then teleports on proximity ----
+  const noBtn = document.getElementById('no-btn');
+  let noBtnPlaced = false;
+  let teleportEnabled = false;
+
+  function initNoButton() {
+    if (noBtnPlaced) return;
+    noBtnPlaced = true;
+
+    // Position No button right beside the Yes button on first render
+    requestAnimationFrame(() => {
+      const yesRect = document.getElementById('yes-btn').getBoundingClientRect();
+      const bw = noBtn.offsetWidth  || 130;
+      const bh = noBtn.offsetHeight || 52;
+      // Place it to the right of Yes, vertically centred with it
+      const x = Math.min(yesRect.right + 24, window.innerWidth - bw - 20);
+      const y = yesRect.top + (yesRect.height - bh) / 2;
+      // Snap there instantly (disable transition briefly)
+      noBtn.style.transition = 'none';
+      noBtn.style.left = x + 'px';
+      noBtn.style.top  = y + 'px';
+      noBtn.style.opacity = '1';
+
+      // Re-enable smooth transition then allow teleport after 350ms
+      setTimeout(() => {
+        noBtn.style.transition = 'left 0.22s cubic-bezier(.22,.68,0,1.2), top 0.22s cubic-bezier(.22,.68,0,1.2), font-size 0.3s';
+        teleportEnabled = true;
+      }, 350);
+    });
+  }
+
+  function getNewPos() {
+    const bw = noBtn.offsetWidth  || 130;
+    const bh = noBtn.offsetHeight || 52;
+    const margin = 20;
+    const maxX = window.innerWidth  - bw - margin;
+    const maxY = window.innerHeight - bh - margin;
+    return {
+      x: margin + Math.random() * maxX,
+      y: margin + Math.random() * maxY
+    };
+  }
+
+  let noFontSize = 17;
+  const memes = [
+    "Bro, the button is running away 😂",
+    "The 'No' button has left the chat 👋",
+    "Catch it if you can! (You can't.)",
+    "Your cursor is just not fast enough lol",
+    "The button said no to your no. Ironic.",
+    "This is a 'Yes'-only zone 😇",
+    "Error 404: 'No' not found 🔍",
+    "The 'No' button has gone on vacation ✈️",
+    "404 — Courage not found 💀",
+    "Still running… 🏃 try YES instead!",
+  ];
+  let memeIdx = 0;
+
+  function teleportNo() {
+    if (!teleportEnabled) return;
+    const p = getNewPos();
+    noBtn.style.left = p.x + 'px';
+    noBtn.style.top  = p.y + 'px';
+    if (noFontSize > 9) { noFontSize -= 1; noBtn.style.fontSize = noFontSize + 'px'; }
+    const msg = document.getElementById('meme-msg');
+    msg.style.animation = 'none';
+    msg.textContent = memes[memeIdx++ % memes.length];
+    void msg.offsetWidth;
+    msg.style.animation = 'fadeIn 0.3s ease';
+  }
+
+  // Mouse proximity: teleport when cursor gets within 80px of the No button
+  document.addEventListener('mousemove', (e) => {
+    if (!document.getElementById('screen2').classList.contains('active')) return;
+    const r = noBtn.getBoundingClientRect();
+    const cx = r.left + r.width  / 2;
+    const cy = r.top  + r.height / 2;
+    const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
+    if (dist < 80) teleportNo();
+  });
+
+  // Touch: teleport on any touch anywhere on screen2
+  document.getElementById('screen2').addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    const r = noBtn.getBoundingClientRect();
+    const cx = r.left + r.width  / 2;
+    const cy = r.top  + r.height / 2;
+    const dist = Math.hypot(t.clientX - cx, t.clientY - cy);
+    if (dist < 120) teleportNo();
+  }, { passive: true });
+
+  // ---- MUSIC (YouTube IFrame API) ----
+  let ytPlayer = null;
+  let ytReady  = false;
+  let playing  = false;
+  const toggleBtn = document.getElementById('toggle-music');
+
+  function loadYT() {
+    if (window.YT && window.YT.Player) { createPlayer(); return; }
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+    window.onYouTubeIframeAPIReady = createPlayer;
+  }
+
+  function createPlayer() {
+    const div = document.createElement('div');
+    div.id = 'yt-inner';
+    document.getElementById('yt-player').appendChild(div);
+    ytPlayer = new YT.Player('yt-inner', {
+      height: '1', width: '1',
+      videoId: YOUTUBE_VIDEO_ID,
+      playerVars: { autoplay: 1, loop: 1, playlist: YOUTUBE_VIDEO_ID, controls: 0 },
+      events: {
+        onReady: (e) => { ytReady = true; e.target.setVolume(70); e.target.playVideo(); playing = true; toggleBtn.textContent = '⏸'; },
+      }
+    });
+  }
+
+  // MP3 fallback
+  let mp3Audio = null;
+  function initMP3() {
+    mp3Audio = new Audio(MP3_URL);
+    mp3Audio.loop = true;
+    mp3Audio.volume = 0.7;
+    mp3Audio.play().then(() => { playing = true; toggleBtn.textContent = '⏸'; }).catch(()=>{});
+  }
+
+  function startMusic() {
+    if (playing) return;   // already going — don't restart
+    if (YOUTUBE_VIDEO_ID) { loadYT(); return; }
+    if (MP3_URL)          { initMP3(); return; }
+    toggleBtn.title = "Add your song in the CUSTOMIZE block at the top of the script!";
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    if (!YOUTUBE_VIDEO_ID && !MP3_URL) {
+      alert("🎵 Add your song!\n\nOpen the HTML file, find the CUSTOMIZE block at the top of the <script> tag, and set YOUTUBE_VIDEO_ID or MP3_URL.");
+      return;
+    }
+    if (YOUTUBE_VIDEO_ID && ytPlayer && ytReady) {
+      if (playing) { ytPlayer.pauseVideo(); toggleBtn.textContent = '▶'; }
+      else         { ytPlayer.playVideo();  toggleBtn.textContent = '⏸'; }
+      playing = !playing;
+    } else if (mp3Audio) {
+      if (playing) { mp3Audio.pause(); toggleBtn.textContent = '▶'; }
+      else         { mp3Audio.play();  toggleBtn.textContent = '⏸'; }
+      playing = !playing;
+    } else {
+      startMusic();
+    }
+  });
+
+  // ---- CONFETTI ----
+  function launchConfetti() {
+    const colors = ['#f472b6','#ec4899','#f97316','#fbbf24','#34d399','#60a5fa','#a78bfa','#f9a8d4'];
+    for (let i = 0; i < 120; i++) {
+      setTimeout(() => {
+        const c = document.createElement('div');
+        c.className = 'confetti-piece';
+        c.style.left             = Math.random() * 100 + 'vw';
+        c.style.background       = colors[Math.floor(Math.random() * colors.length)];
+        c.style.width            = (8 + Math.random() * 8) + 'px';
+        c.style.height           = (8 + Math.random() * 8) + 'px';
+        c.style.borderRadius     = Math.random() > 0.5 ? '50%' : '2px';
+        c.style.animationDuration = (2.5 + Math.random() * 2) + 's';
+        c.style.animationDelay   = (Math.random() * 0.5) + 's';
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 5000);
+      }, i * 20);
+    }
+  }
+
+  function goToYes() {
+    launchConfetti();
+    goTo(3);
+    startMusic();
+  }
+
+  function restart() {
+    noBtnPlaced     = false;
+    teleportEnabled = false;
+    noFontSize      = 17;
+    noBtn.style.fontSize = '17px';
+    memeIdx = 0;
+    document.getElementById('meme-msg').textContent = '';
+    goTo(1);
+  }
+</script>
+</body>
+</html>
